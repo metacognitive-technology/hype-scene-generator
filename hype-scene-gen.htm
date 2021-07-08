@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="keywords" content="jQuery DropDownList, List, ListBox, Popup List, jqxDropDownList, jqxListBox, List Widget, ListBox Widget, DropDownList Widget" /> 
+    <meta name="description" content="The jqxListBox represents a widget that contains a list of selectable items."/>
+    <title id='Description'>The jqxListBox represents a widget that contains a list of selectable
+        items. </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>    <link rel="stylesheet" href="./scripts/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1 minimum-scale=1" />
+    <script
+            src="https://code.jquery.com/jquery-1.12.4.min.js"
+            integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   <script type="text/javascript" src="./scripts/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="./scripts/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="./scripts/jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="./scripts/jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="./scripts/main.js"></script>
+    <script type="text/javascript" src="./scripts/plist.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/underscore@1.13.1/underscore-umd-min.js"></script>
+
+
+    <style type="text/css" media="screen">
+        .ace_text-input {
+            position: relative;}
+        #sceneEditor {
+            height: 100%;
+        }
+        #elementEditor {
+            height: 100%;
+        }
+        #groupEditor {
+            height: 100%;
+        }
+        #resourceEditor {
+            height: 100%;
+        }
+    </style>
+
+    <script type="text/javascript">
+        updateSceneList = () => {
+            $("#sceneList").jqxListBox({
+                source: plistJSON.sceneContainers,
+                displayMember: 'name'
+            });
+        }
+        setupWidgets = () => {
+            sceneEditor = ace.edit("sceneEditor")
+            sceneEditor.session.setMode("ace/mode/json");
+            $("#sceneList").jqxListBox({
+                source: plistJSON.sceneContainers,
+                displayMember: 'name',
+                width: "100%",
+                height: "100%"
+            });
+            $('#sceneList').on('select', function (event) {
+                var args = event.args;
+                currentSceneContainer = null
+                if (args) {
+                    var item = args.item;
+                    currentSceneContainer = item.originalItem
+                    sceneEditor.setValue(JSON.stringify(item.originalItem, null, 2))
+                    rootSymbolControllerOid = item.originalItem.scenes[0].rootSymbolControllerOid
+                    theSymbol = null
+                    plistJSON.symbols.forEach((symbolHolder) => {
+                        if (symbolHolder.symbol.oid == rootSymbolControllerOid) {
+                            theSymbol = symbolHolder.symbol
+                        }
+                    })
+                    $("#elementList").jqxListBox({source: Object.keys(theSymbol.elements)})
+                }
+            });
+
+            elementEditor = ace.edit("elementEditor")
+            elementEditor.session.setMode("ace/mode/json");
+            $("#elementList").jqxListBox({source: [], width: "100%", height: "100%"});
+            $('#elementList').on('select', function (event) {
+                var args = event.args;
+                if (args) {
+                    var item = args.item;
+                    elementEditor.setValue(JSON.stringify(theSymbol.elements[item.originalItem], null, 2))
+                    return true
+                }
+            });
+
+            groupEditor = ace.edit("groupEditor")
+            groupEditor.session.setMode("ace/mode/json");
+
+            $("#groupList").jqxListBox({
+                source: plistJSON.resourcesInfo.groups,
+                displayMember: 'oid',
+                width: "100%",
+                height: "100%"
+            });
+            $('#groupList').on('select', function (event) {
+                var args = event.args;
+                if (args) {
+                    var item = args.item;
+                    groupEditor.setValue(JSON.stringify(item.originalItem, null, 2))
+                    theGroup = item.originalItem
+                    $("#resourceList").jqxListBox({source: theGroup.resources, displayMember: 'resourceName'})
+                }
+            });
+
+            resourceEditor = ace.edit("resourceEditor")
+            resourceEditor.session.setMode("ace/mode/json");
+            $("#resourceList").jqxListBox({
+                source: plistJSON.resourcesInfo.resources,
+                displayMember: 'resourceName',
+                width: "100%",
+                height: "100%"
+            });
+            $('#resourceList').on('select', function (event) {
+                var args = event.args;
+                if (args) {
+                    resourceEditor.setValue(JSON.stringify(plistJSON.resourcesInfo.resources[args.index], null, 2))
+                }
+            });
+        }
+        refreshWidgets = () => {
+             $("#sceneList").jqxListBox('refresh');
+            $("#elementList").jqxListBox('refresh');
+            $("#groupList").jqxListBox('refresh');
+            $("#resourceList").jqxListBox('refresh');
+        }
+
+        $(document).ready(function () {
+
+            setupWidgets()
+            function readSingleFile(e) {
+                var file = e.target.files[0];
+                if (!file) {
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var contents = e.target.result;
+                    var obj = plist.parse(contents);
+                    plistJSON = obj
+                    resetCounters()
+                    setupWidgets()
+                };
+                reader.readAsText(file);
+            }
+
+            document.getElementById('file-input')
+                .addEventListener('change', readSingleFile, false);
+
+        })
+    </script>
+
+
+</head>
+<body>
+    <div class="container">
+        <h2>Hype Scene Generator</h2>
+<hr>
+        <H3>Load *-restorable.plist XML file</H3>
+        <input type="file" id="file-input" />
+        <button onclick="setEmptyPlist()">Reset to empty plist</button>
+
+        <hr>
+        <h3>Scenes</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-sm-1" >
+                <button onclick="addScene()">Add 1</button>
+                <button onclick="addManyScenes()">Add N</button>
+                <button onclick="cloneScene()">Clone 1</button>
+                <button onclick="cloneManyScenesWithBackGroundImages()">Clone N</button>
+            </div>
+            <div class="col-sm-4">
+                <div id='sceneList'>
+                </div>
+            </div>
+            <div class="col-sm-7" >
+                <div id="sceneEditor">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h3>Elements</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-sm-1" >
+                <button>Add</button>
+                <button>Remove</button>
+                <button>Cut</button>
+                <button>Copy</button>
+                <button>Paste</button>
+            </div>
+            <div class="col-sm-4">
+                <div id='elementList'>
+                </div>
+            </div>
+            <div class="col-sm-7" >
+                <div id="elementEditor">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h3>Groups</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-sm-1" >
+                <button>Add</button>
+                <button>Remove</button>
+                <button>Cut</button>
+                <button>Copy</button>
+                <button>Paste</button>
+            </div>
+            <div class="col-sm-4">
+                <div id='groupList'>
+                </div>
+            </div>
+            <div class="col-sm-7" >
+                <div id="groupEditor">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h3>Resources</h3>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-sm-1" >
+                <button>Add</button>
+                <button>Remove</button>
+                <button>Cut</button>
+                <button>Copy</button>
+                <button>Paste</button>
+            </div>
+            <div class="col-sm-4">
+                <div id='resourceList'>
+                </div>
+            </div>
+            <div class="col-sm-7" >
+                <div id="resourceEditor">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<hr>
+<button onclick="saveXMLPlistFile()">Save XML Plist File</button>
+
+
+</body>
+</html>
