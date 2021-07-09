@@ -3495,7 +3495,7 @@ cloneSceneContainerAndSymbolHolderWithNewBackgroundImage = (oldSC,imageFilename)
     var results = cloneSceneContainerAndSymbolHolder(oldSC)
     var newR = newResource(imageFilename)
     plistJSON.resourcesInfo.resources.push(newR)
-    var newG = newGroup([newR.resourceName],newR.resourceName.split('.')[0])
+    var newG = newGroup([newR.resourceName],newR.resourceName.split('.png')[0])
     plistJSON.resourcesInfo.groups.push(newG)
     var newImageElementPair = _.pairs(newImageElement(newG.oid,newG.name))[0]
     results.symbolHolder.symbol.elements[newImageElementPair[0]] = newImageElementPair[1]
